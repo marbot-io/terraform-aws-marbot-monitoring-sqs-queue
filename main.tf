@@ -110,7 +110,7 @@ resource "aws_cloudwatch_event_target" "monitoring_jump_start" {
 {
   "Type": "monitoring-jump-start-tf-connection",
   "Module": "sqs-queue",
-  "Version": "0.1.0",
+  "Version": "0.2.0",
   "Partition": "${data.aws_partition.current.partition}",
   "AccountId": "${data.aws_caller_identity.current.account_id}",
   "Region": "${data.aws_region.current.name}"
@@ -132,7 +132,7 @@ resource "random_id" "id8" {
 
 resource "aws_cloudwatch_metric_alarm" "approximate_age_of_oldest_message" {
   depends_on = [aws_sns_topic_subscription.marbot]
-  count      = (var.approximate_age_of_oldest_message_threshold > 0 && var.enabled) ? 1 : 0
+  count      = (var.approximate_age_of_oldest_message_threshold >= 0 && var.enabled) ? 1 : 0
 
   alarm_name          = "marbot-sqs-queue-message-age-${random_id.id8.hex}"
   alarm_description   = "Queue contains old messages. Is message processing failing or is the message procesing capacity too low? (created by marbot)"
@@ -156,7 +156,7 @@ resource "aws_cloudwatch_metric_alarm" "approximate_age_of_oldest_message" {
 
 resource "aws_cloudwatch_metric_alarm" "approximate_number_of_messages_visible" {
   depends_on = [aws_sns_topic_subscription.marbot]
-  count      = (var.approximate_number_of_messages_visible_threshold > 0 && var.enabled) ? 1 : 0
+  count      = (var.approximate_number_of_messages_visible_threshold >= 0 && var.enabled) ? 1 : 0
 
   alarm_name          = "marbot-sqs-queue-length-${random_id.id8.hex}"
   alarm_description   = "Queue contains too many messages. Is message processing failing or is the message procesing capacity too low? (created by marbot)"
