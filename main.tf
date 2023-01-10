@@ -12,6 +12,10 @@ data "aws_caller_identity" "current" {}
 
 data "aws_region" "current" {}
 
+locals {
+  topic_arn = var.create_topic == false ? var.topic_arn : join("", aws_sns_topic.marbot.*.arn)
+}
+
 ##########################################################################
 #                                                                        #
 #                                 TOPIC                                  #
@@ -19,14 +23,14 @@ data "aws_region" "current" {}
 ##########################################################################
 
 resource "aws_sns_topic" "marbot" {
-  count = var.enabled ? 1 : 0
+  count = (var.create_topic && var.enabled) ? 1 : 0
 
   name_prefix = "marbot"
   tags        = var.tags
 }
 
 resource "aws_sns_topic_policy" "marbot" {
-  count = var.enabled ? 1 : 0
+  count = (var.create_topic && var.enabled) ? 1 : 0
 
   arn    = join("", aws_sns_topic.marbot.*.arn)
   policy = data.aws_iam_policy_document.topic_policy.json
@@ -68,7 +72,7 @@ data "aws_iam_policy_document" "topic_policy" {
 
 resource "aws_sns_topic_subscription" "marbot" {
   depends_on = [aws_sns_topic_policy.marbot]
-  count      = var.enabled ? 1 : 0
+  count      = (var.create_topic && var.enabled) ? 1 : 0
 
   topic_arn              = join("", aws_sns_topic.marbot.*.arn)
   protocol               = "https"
@@ -107,12 +111,12 @@ resource "aws_cloudwatch_event_target" "monitoring_jump_start_connection" {
 
   rule      = join("", aws_cloudwatch_event_rule.monitoring_jump_start_connection.*.name)
   target_id = "marbot"
-  arn       = join("", aws_sns_topic.marbot.*.arn)
+  arn       = local.topic_arn
   input     = <<JSON
 {
   "Type": "monitoring-jump-start-tf-connection",
   "Module": "sqs-queue",
-  "Version": "0.5.3",
+  "Version": "0.6.0",
   "Partition": "${data.aws_partition.current.partition}",
   "AccountId": "${data.aws_caller_identity.current.account_id}",
   "Region": "${data.aws_region.current.name}"
@@ -145,8 +149,8 @@ resource "aws_cloudwatch_metric_alarm" "approximate_age_of_oldest_message" {
   evaluation_periods  = 1
   comparison_operator = "GreaterThanThreshold"
   threshold           = var.approximate_age_of_oldest_message_threshold
-  alarm_actions       = [join("", aws_sns_topic.marbot.*.arn)]
-  ok_actions          = [join("", aws_sns_topic.marbot.*.arn)]
+  alarm_actions       = [local.topic_arn]
+  ok_actions          = [local.topic_arn]
   dimensions = {
     QueueName = var.queue_name
   }
@@ -169,8 +173,8 @@ resource "aws_cloudwatch_metric_alarm" "approximate_number_of_messages_visible" 
   evaluation_periods  = 1
   comparison_operator = "GreaterThanThreshold"
   threshold           = var.approximate_number_of_messages_visible_threshold
-  alarm_actions       = [join("", aws_sns_topic.marbot.*.arn)]
-  ok_actions          = [join("", aws_sns_topic.marbot.*.arn)]
+  alarm_actions       = [local.topic_arn]
+  ok_actions          = [local.topic_arn]
   dimensions = {
     QueueName = var.queue_name
   }
