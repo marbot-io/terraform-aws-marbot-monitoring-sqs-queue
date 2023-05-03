@@ -23,6 +23,22 @@ terraform init
 terraform apply
 ```
 
+## Config via tags
+
+You can also configure this module by tagging the SQS queue (requires v1.0.0 or higher). Tags take precedence over variables (tags override variables).
+
+| tag key                                                            | default value                                                        | allowed values                                |
+| ------------------------------------------------------------------ | -------------------------------------------------------------------- | ----------------------------------------------|
+| `marbot`                                                           | on                                                                   | on,off                                        |
+| `marbot:approximate-age-of-oldest-message`                         | variable `approximate_age_of_oldest_message`                         | static,off                                    |
+| `marbot:approximate-age-of-oldest-message:threshold`               | variable `approximate_age_of_oldest_message_threshold`               | >= 0                                          |
+| `marbot:approximate-age-of-oldest-message:period`                  | variable `approximate_age_of_oldest_message_period`                  | <= 86400 and multiple of 60                   |
+| `marbot:approximate-age-of-oldest-message:evaluation-periods`      | variable `approximate_age_of_oldest_message_evaluation_periods`      | >= 1 and $period*$evaluation-periods <= 86400 |
+| `marbot:approximate-number-of-messages-visible`                    | variable `approximate_number_of_messages_visible`                    | static,off                                    |
+| `marbot:approximate-number-of-messages-visible:threshold`          | variable `approximate_number_of_messages_visible_threshold`          | >= 0                                          |
+| `marbot:approximate-number-of-messages-visible:period`             | variable `approximate_number_of_messages_visible_period`             | <= 86400 and multiple of 60                   |
+| `marbot:approximate-number-of-messages-visible:evaluation-periods` | variable `approximate_number_of_messages_visible_evaluation_periods` | >= 1 and $period*$evaluation-periods <= 86400 |
+
 ## Update procedure
 
 1. Update the `version`
