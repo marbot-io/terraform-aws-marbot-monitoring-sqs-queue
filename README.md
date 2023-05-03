@@ -25,7 +25,7 @@ terraform apply
 
 ## Config via tags
 
-You can also configure this module by tagging the EC2 instance (requires v1.0.0 or higher). Tags take precedence over variables (tags override variables).
+You can also configure this module by tagging the SQS queue (requires v1.0.0 or higher). Tags take precedence over variables (tags override variables).
 
 | tag key                                                            | default value                                                        | allowed values                                |
 | ------------------------------------------------------------------ | -------------------------------------------------------------------- | ----------------------------------------------|
